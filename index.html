@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Chess</title>
+    <title>Pokemon Chess - Legendary Kings</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,34 +13,109 @@
             min-height: 100vh;
             margin: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
         }
         
         .game-container {
             text-align: center;
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 900px;
         }
         
         h1 {
             color: #333;
             margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .score-board {
+            display: flex;
+            gap: 30px;
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-undo {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .btn-reset {
+            background-color: #dc3545;
+            color: white;
         }
         
         .board {
             display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
+            grid-template-columns: repeat(8, 80px);
+            grid-template-rows: repeat(8, 80px);
             gap: 0;
-            border: 3px solid #333;
+            border: 4px solid #333;
             margin: 20px auto;
             background: #8B4513;
         }
         
         .square {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -58,86 +133,249 @@
         
         .square.selected {
             background-color: #7CFC00 !important;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
         }
         
-        .square.possible-move {
-            background-color: #FFD700 !important;
+        /* New dot indicator styles */
+        .square.possible-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(34, 139, 34, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Special dot for capture moves */
+        .square.possible-capture::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(220, 53, 69, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
         }
         
         .piece {
-            width: 50px;
-            height: 50px;
+            width: 70px;
+            height: 70px;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 5;
+            position: relative;
+        }
+        
+        .piece:hover {
+            transform: scale(1.1);
         }
         
         .status {
             margin-top: 20px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #333;
         }
         
         .turn-indicator {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            padding: 15px 25px;
+            border-radius: 10px;
             font-weight: bold;
+            font-size: 18px;
+            min-width: 150px;
         }
         
         .white-turn {
             background-color: #f0f0f0;
             color: #333;
+            border: 2px solid #333;
         }
         
         .black-turn {
             background-color: #333;
             color: white;
+            border: 2px solid #f0f0f0;
+        }
+        
+        .captured-pieces {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .captured-section {
+            flex: 1;
+        }
+        
+        .captured-label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .captured-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .captured-piece {
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .game-info {
+                flex-direction: column;
+            }
+            
+            .board {
+                grid-template-columns: repeat(8, 60px);
+                grid-template-rows: repeat(8, 60px);
+            }
+            
+            .square {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .piece {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .square.possible-move::after {
+                width: 15px;
+                height: 15px;
+            }
+            
+            .square.possible-capture::after {
+                width: 22px;
+                height: 22px;
+                border-width: 3px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>🔥 Pokemon Chess ⚡</h1>
-        <div class="turn-indicator" id="turnIndicator">White's Turn</div>
+        <h1>🔥 Pokemon Chess - Legendary Kings ⚡</h1>
+        
+        <div class="game-info">
+            <div class="score-board">
+                <div class="score-item">
+                    <div class="score-label">Entei Wins</div>
+                    <div class="score-value" id="whiteScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Mewtwo Wins</div>
+                    <div class="score-value" id="blackScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Games Played</div>
+                    <div class="score-value" id="gamesPlayed">0</div>
+                </div>
+            </div>
+            
+            <div class="turn-indicator" id="turnIndicator">Entei's Turn</div>
+            
+            <div class="controls">
+                <button class="btn btn-undo" id="undoBtn" onclick="game.undoMove()">↶ Undo</button>
+                <button class="btn btn-reset" onclick="game.resetGame()">🔄 New Game</button>
+            </div>
+        </div>
+        
         <div class="board" id="chessBoard"></div>
+        
+        <div class="captured-pieces" id="capturedPieces">
+            <div class="captured-section">
+                <div class="captured-label">Entei's Army Captured:</div>
+                <div class="captured-list" id="whiteCaptured"></div>
+            </div>
+            <div class="captured-section">
+                <div class="captured-label">Mewtwo's Army Captured:</div>
+                <div class="captured-list" id="blackCaptured"></div>
+            </div>
+        </div>
+        
         <div class="status" id="gameStatus">Game in progress</div>
     </div>
 
     <script>
         class PokemonChess {
             constructor() {
+                this.initializeGame();
+                this.loadScores();
+            }
+            
+            initializeGame() {
                 this.board = this.initializeBoard();
                 this.currentPlayer = 'white';
                 this.selectedSquare = null;
                 this.gameOver = false;
                 this.moveHistory = [];
+                this.capturedPieces = { white: [], black: [] };
                 
-                // Pokemon sprites mapping
+                // Pokemon sprites mapping with LEGENDARY KINGS!
                 this.pieceSprites = {
                     'white': {
-                        'king': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png', // Pikachu
-                        'queen': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png', // Dragonite
-                        'rook': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png', // Snorlax
-                        'bishop': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/196.png', // Espeon
-                        'knight': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/78.png', // Rapidash
-                        'pawn': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png' // Jigglypuff
+                        'king': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/244.png', // ENTEI - The Legendary Fire King!
+                        'queen': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png', // Dragonite
+                        'rook': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png', // Snorlax
+                        'bishop': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/196.png', // Espeon
+                        'knight': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/78.png', // Rapidash
+                        'pawn': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png' // Jigglypuff
                     },
                     'black': {
-                        'king': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png', // Charizard
-                        'queen': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png', // Gyarados
-                        'rook': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png', // Machamp
-                        'bishop': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png', // Umbreon
-                        'knight': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png', // Arcanine
-                        'pawn': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/92.png' // Gastly
+                        'king': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png', // MEWTWO - The Legendary Psychic King!
+                        'queen': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png', // Gyarados
+                        'rook': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png', // Machamp
+                        'bishop': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/197.png', // Umbreon
+                        'knight': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png', // Arcanine
+                        'pawn': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/92.png' // Gastly
                     }
                 };
                 
                 this.createBoard();
                 this.updateDisplay();
+                this.updateCapturedPieces();
             }
             
             initializeBoard() {
@@ -193,7 +431,6 @@
                     const [selectedRow, selectedCol] = this.selectedSquare;
                     
                     if (row === selectedRow && col === selectedCol) {
-                        // Deselect the same square
                         this.selectedSquare = null;
                         this.clearHighlights();
                         return;
@@ -207,7 +444,6 @@
                         this.updateDisplay();
                         this.checkGameEnd();
                     } else if (piece && piece.color === this.currentPlayer) {
-                        // Select a different piece of the same color
                         this.selectedSquare = [row, col];
                         this.highlightSquare(row, col);
                         this.highlightPossibleMoves(row, col);
@@ -216,7 +452,6 @@
                         this.clearHighlights();
                     }
                 } else if (piece && piece.color === this.currentPlayer) {
-                    // Select a piece
                     this.selectedSquare = [row, col];
                     this.highlightSquare(row, col);
                     this.highlightPossibleMoves(row, col);
@@ -313,17 +548,64 @@
                 const piece = this.board[fromRow][fromCol];
                 const capturedPiece = this.board[toRow][toCol];
                 
+                // Store the move for undo functionality
+                const moveData = {
+                    from: [fromRow, fromCol],
+                    to: [toRow, toCol],
+                    piece: { ...piece },
+                    captured: capturedPiece ? { ...capturedPiece } : null,
+                    player: this.currentPlayer
+                };
+                
+                this.moveHistory.push(moveData);
+                
+                // Handle captured piece
+                if (capturedPiece) {
+                    this.capturedPieces[this.currentPlayer].push(capturedPiece);
+                }
+                
                 this.board[toRow][toCol] = piece;
                 this.board[fromRow][fromCol] = null;
                 
-                this.moveHistory.push({
-                    from: [fromRow, fromCol],
-                    to: [toRow, toCol],
-                    piece: piece,
-                    captured: capturedPiece
-                });
+                this.createBoard();
+                this.updateCapturedPieces();
+                this.updateUndoButton();
+            }
+            
+            undoMove() {
+                if (this.moveHistory.length === 0 || this.gameOver) return;
+                
+                const lastMove = this.moveHistory.pop();
+                const [fromRow, fromCol] = lastMove.from;
+                const [toRow, toCol] = lastMove.to;
+                
+                // Restore the board state
+                this.board[fromRow][fromCol] = lastMove.piece;
+                this.board[toRow][toCol] = lastMove.captured;
+                
+                // Remove captured piece from the list if there was one
+                if (lastMove.captured) {
+                    const capturedArray = this.capturedPieces[lastMove.player];
+                    const index = capturedArray.findIndex(piece => 
+                        piece.type === lastMove.captured.type && 
+                        piece.color === lastMove.captured.color
+                    );
+                    if (index > -1) {
+                        capturedArray.splice(index, 1);
+                    }
+                }
+                
+                // Switch back to the previous player
+                this.currentPlayer = lastMove.player;
+                this.gameOver = false;
                 
                 this.createBoard();
+                this.updateDisplay();
+                this.updateCapturedPieces();
+                this.updateUndoButton();
+                
+                // Clear game status if it was showing a win
+                document.getElementById('gameStatus').textContent = 'Game in progress';
             }
             
             switchPlayer() {
@@ -344,7 +626,12 @@
                         if (this.isValidMove(row, col, toRow, toCol)) {
                             const square = document.querySelector(`[data-row="${toRow}"][data-col="${toCol}"]`);
                             if (square) {
-                                square.classList.add('possible-move');
+                                // Check if it's a capture move or regular move
+                                if (this.board[toRow][toCol]) {
+                                    square.classList.add('possible-capture');
+                                } else {
+                                    square.classList.add('possible-move');
+                                }
                             }
                         }
                     }
@@ -354,14 +641,42 @@
             clearHighlights() {
                 const squares = document.querySelectorAll('.square');
                 squares.forEach(square => {
-                    square.classList.remove('selected', 'possible-move');
+                    square.classList.remove('selected', 'possible-move', 'possible-capture');
                 });
             }
             
             updateDisplay() {
                 const turnIndicator = document.getElementById('turnIndicator');
-                turnIndicator.textContent = `${this.currentPlayer.charAt(0).toUpperCase() + this.currentPlayer.slice(1)}'s Turn`;
+                const kingName = this.currentPlayer === 'white' ? 'Entei' : 'Mewtwo';
+                turnIndicator.textContent = `${kingName}'s Turn`;
                 turnIndicator.className = `turn-indicator ${this.currentPlayer}-turn`;
+            }
+            
+            updateCapturedPieces() {
+                const whiteCaptured = document.getElementById('whiteCaptured');
+                const blackCaptured = document.getElementById('blackCaptured');
+                
+                whiteCaptured.innerHTML = '';
+                blackCaptured.innerHTML = '';
+                
+                this.capturedPieces.white.forEach(piece => {
+                    const pieceElement = document.createElement('div');
+                    pieceElement.className = 'captured-piece';
+                    pieceElement.style.backgroundImage = `url(${this.pieceSprites[piece.color][piece.type]})`;
+                    whiteCaptured.appendChild(pieceElement);
+                });
+                
+                this.capturedPieces.black.forEach(piece => {
+                    const pieceElement = document.createElement('div');
+                    pieceElement.className = 'captured-piece';
+                    pieceElement.style.backgroundImage = `url(${this.pieceSprites[piece.color][piece.type]})`;
+                    blackCaptured.appendChild(pieceElement);
+                });
+            }
+            
+            updateUndoButton() {
+                const undoBtn = document.getElementById('undoBtn');
+                undoBtn.disabled = this.moveHistory.length === 0 || this.gameOver;
             }
             
             checkGameEnd() {
@@ -381,17 +696,58 @@
                 
                 if (!kingExists.white) {
                     this.gameOver = true;
-                    document.getElementById('gameStatus').textContent = 'Black Wins! 🎉';
+                    document.getElementById('gameStatus').textContent = 'Mewtwo Wins! 🎉';
+                    this.updateScore('black');
                 } else if (!kingExists.black) {
                     this.gameOver = true;
-                    document.getElementById('gameStatus').textContent = 'White Wins! 🎉';
+                    document.getElementById('gameStatus').textContent = 'Entei Wins! 🎉';
+                    this.updateScore('white');
                 }
+                
+                this.updateUndoButton();
+            }
+            
+            updateScore(winner) {
+                let scores = JSON.parse(localStorage.getItem('pokemonChessScores')) || {
+                    white: 0,
+                    black: 0,
+                    games: 0
+                };
+                
+                scores[winner]++;
+                scores.games++;
+                
+                localStorage.setItem('pokemonChessScores', JSON.stringify(scores));
+                this.displayScores(scores);
+            }
+            
+            loadScores() {
+                const scores = JSON.parse(localStorage.getItem('pokemonChessScores')) || {
+                    white: 0,
+                    black: 0,
+                    games: 0
+                };
+                this.displayScores(scores);
+            }
+            
+            displayScores(scores) {
+                document.getElementById('whiteScore').textContent = scores.white;
+                document.getElementById('blackScore').textContent = scores.black;
+                document.getElementById('gamesPlayed').textContent = scores.games;
+            }
+            
+            resetGame() {
+                this.initializeGame();
+                document.getElementById('gameStatus').textContent = 'Game in progress';
             }
         }
         
+        // Global game instance
+        let game;
+        
         // Start the game when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new PokemonChess();
+            game = new PokemonChess();
         });
     </script>
 </body>
